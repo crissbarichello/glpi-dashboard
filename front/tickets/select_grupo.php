@@ -5,6 +5,10 @@ global $DB, $CFG_GLPI;
 
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 ?>
 
 <html> 
@@ -121,7 +125,8 @@ $selected = "0";
 		<a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:25px;"></i><span></span></a>		
 		<div id="titulo_graf"> <?php echo __('Tickets', 'dashboard') .'  '. __('by Group', 'dashboard') ?> </div>		
 			<div id="datas-cham" class="col-md-12 fluid" >	
-				<form id="form1" name="form1" class="form_rel" method="post" action="select_grupo.php?sel=1">			
+				<form id="form1" name="form1" class="form_rel" method="post" action="select_grupo.php?sel=1">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>			
 					<table border="0" cellspacing="0" cellpadding="1" bgcolor="#efefef" width="300px">
 						<tr>
 						<td>
@@ -147,35 +152,32 @@ $selected = "0";
 	
 	<?php
 	
-	if(isset($_REQUEST['sel'])){
-		$sel = $_REQUEST['sel'];
-	}
-	else {$sel = '';}
-	
-	if($sel == "1") {
-	 
-	if(!isset($_POST["sel_grp"])) {
-	$id_grp = $_REQUEST["ent"];	
-	}
-	
-	else {
-	$id_grp = $_POST["sel_grp"];
-	}
-	
-	if($id_grp == " " || $id_grp == 0) {
-	echo '<script language="javascript"> alert(" ' . __('Select a group', 'dashboard') . ' "); </script>';
-	echo '<script language="javascript"> location.href="select_grupo.php"; </script>';
-	}	
-	?>	
-	<script type="text/javascript" >
-	location.href="tickets_group.php?grp=<?php echo $id_grp; ?>";
-	</script>		
-	
-	</div>
-</div>
-</div>
-</body>
-</html>
+		if (isset($_GET['sel'])) {
+			$sel = (string)$_GET['sel'];
+		} else {
+			$sel = '';
+		}
+		
+		if($sel == "1") {
 
-<?php } ?>
+		$id_grp = 0;
+		if (isset($_POST['sel_grp'])) {
+			$id_grp = (int)$_POST['sel_grp'];
+		} elseif (isset($_GET['grp'])) {
+			$id_grp = (int)$_GET['grp'];
+		}
+		
+		if ($id_grp <= 0) {
+			echo '<script language="javascript"> alert(" ' . __('Select a group', 'dashboard') . ' "); </script>';
+			echo '<script language="javascript"> location.href="select_grupo.php"; </script>';
+		} else {
+			Html::redirect("tickets_group.php?grp=".$id_grp);
+		}
+	}
+	?>
+		</div>
+	</div>
+	</div>
+	</body>
+	</html>
 

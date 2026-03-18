@@ -1,0 +1,39 @@
+<root>
+   <name>Dashboard</name>
+   <key>dashboard</key>
+   <state>development</state>
+   <description>
+      <short>
+         <en>Dashboard plugin for GLPI</en>
+         <pt_BR>Plugin Dashboard para GLPI</pt_BR>
+      </short>
+      <long>
+         <en>Legacy dashboard plugin being migrated to modern GLPI plugin standards.</en>
+         <pt_BR>Plugin de dashboard legado em migração para o padrão moderno de plugins GLPI.</pt_BR>
+      </long>
+   </description>
+   <homepage>https://plugins.glpi-project.org/#/plugin/dashboard</homepage>
+   <authors>
+      <author>Stevenes Donato</author>
+   </authors>
+   <versions>
+      <version>
+         <num>1.0.4-dev</num>
+         <compatibility>~10.0.0</compatibility>
+      </version>
+   </versions>
+   <langs>
+      <lang>en_GB</lang>
+      <lang>pt_BR</lang>
+      <lang>pt_PT</lang>
+      <lang>fr_FR</lang>
+      <lang>es_ES</lang>
+      <lang>de_DE</lang>
+      <lang>it_IT</lang>
+      <lang>pl_PL</lang>
+      <lang>ru_RU</lang>
+      <lang>cs_CZ</lang>
+      <lang>hr_HR</lang>
+   </langs>
+   <license>GPLv2+</license>
+</root>

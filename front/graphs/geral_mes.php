@@ -6,6 +6,10 @@ include ("../../../../inc/config.php");
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 global $DB;
    
     switch (date("m")) {
@@ -104,7 +108,8 @@ else {
 				<?php echo __('Tickets','dashboard') ." ". __('by Date','dashboard');  ?> 
 				
 				<div id="datas" class="col-md-12 col-sm-12 fluid" > 
-				<form id="form1" name="form1" class="form1" method="post" action="?date1=<?php echo $data_ini ?>&date2=<?php echo $data_fin ?>"> 
+				<form id="form1" name="form1" class="form1" method="post" action="?date1=<?php echo $data_ini ?>
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>&date2=<?php echo $data_fin ?>"> 
 					<table border="0" cellspacing="0" cellpadding="2">
 						<tr>
 							<td style="width: 300px;">			

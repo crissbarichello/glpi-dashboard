@@ -6,6 +6,10 @@ include ("../../../inc/config.php");
 
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+	Session::checkCSRF();
+}
 ?>        
 
 <html> 
@@ -167,8 +171,9 @@ function chart(theme) {
 		echo "<table id='main' class='col-md-12 table-config' border='0' style='width:700px; margin:auto; float:none;'>\n";
 			echo "<tr>\n";
 				echo "<td>\n";			                                		 
-			 		echo '<form id="form2" name="form2" method="post" action="config.php?conf=1">';   					
-					echo " -- ".__('Entity','dashboard').":&nbsp;";				
+					 		echo '<form id="form2" name="form2" method="post" action="config.php?conf=1">';   					
+						echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
+						echo " -- ".__('Entity','dashboard').":&nbsp;";				
 					//echo dropdown( $name, $options, $selected );	
 					
 					echo '<select name="sel_ent[]" id="sel_ent" multiple style="width: 600px; height: 250px;">';
@@ -329,6 +334,7 @@ function chart(theme) {
 			echo "<tr>\n";
 				echo "<td>\n";			                                		 
 			 		echo '<form id="formstatus" name="formstatus" method="post" action="config.php?status=1" style="margin-left:15%;">';   					
+					echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
 					echo " -- ".__('Status in Tickets page','dashboard').": ";														
 					echo '<select name="sel_stat[]" id="sel_stat" multiple="multiple" style="width: 600px; height: 250px;"';					
 					echo "<option value='0'>". __('All')."</option>\n";
@@ -399,6 +405,7 @@ function chart(theme) {
 			}			
 				
  		echo '<form id="form1" name="form1" method="post" action="config.php?num_years=1">';   						
+		echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
 		echo "-- ".__('Period in index page','dashboard').":&nbsp; ";  
 		echo "<select id='num' name='num[]' multiple='multiple' style='width: 350px;'> 					
 					<option value='-1' ".$active_all.">".__('All')."</option>\n";
@@ -476,6 +483,7 @@ function chart(theme) {
 		echo "<tr>\n";
 		echo "<td>\n";									
 				echo '<form id="form_met" name="form_met" class="form_met" method="post" action="config.php?met=1">';   						
+				echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
 				echo "-- ".__('Period for Metrics','dashboard').":&nbsp; ";
 				echo "<select id='metric' name='metric' style='width: 160px;' onChange='reload(\"form_met\")'>\n";												
 								echo "					
@@ -504,6 +512,7 @@ function chart(theme) {
 		echo "<tr>\n";
 		echo "<td>\n";									
 				echo '<form id="form3" name="form3" class="form3" method="post" action="config.php?up=1">';   						
+				echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
 				echo "-- ".__('Check for new updates').":&nbsp; 
 						<select id='up' name='up' style='width: 130px;' onChange='reload(\"form3\")'> ";
 							if($up_option == 1) {							
@@ -542,6 +551,7 @@ function chart(theme) {
 			echo "<tr>\n";
 			echo "<td>\n";								
 					echo '<form id="form4" name="form4" class="form4" method="post" action="config.php?layout=1">';   						
+					echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
 					echo "-- ".__('Layout','dashboard').":&nbsp; 
 							<select id='layout' name='layout' style='width: 170px;' onChange='reload(\"form4\")'> ";
 								if($layout == 1) {							
@@ -577,6 +587,7 @@ function chart(theme) {
 			echo "<tr>\n";
 			echo "<td>\n";								
 					echo '<form id="form5" name="form5" class="form5" method="post" action="config.php?info=1">';   						
+					echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
 					echo "-- ".__('Show Server info','dashboard').":&nbsp; 
 							<select id='info' name='info' style='width: 130px;' onChange='reload(\"form5\")'> ";
 								if($info == 1) {							
@@ -629,6 +640,7 @@ function chart(theme) {
 			echo "<tr>\n";
 			echo "<td>\n";								
 					echo '<form id="form6" name="form6" class="form6" method="post" action="config.php?due=1&loc=1&entity=1">';
+					echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
 					
 					echo "-- ".__('Tickets Page','dashboard').":&nbsp; <br><p>";
 					
@@ -783,6 +795,7 @@ function chart(theme) {
 			echo "<td>\n";
 			echo '
 			<form action="upload.php" method="post" enctype="multipart/form-data">
+				<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
    		 Select sound to upload:
     		<input type="file" name="fileToUpload" id="fileToUpload">
     		<button class="btn btn-primary btn-sm" type="submit">Upload File</button>';

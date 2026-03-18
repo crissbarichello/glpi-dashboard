@@ -9,6 +9,10 @@ global $DB, $style;
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 if(!empty($_POST['submit']))
 {
     $data_ini = $_POST['date1'];
@@ -126,6 +130,7 @@ $tec = $DB->fetchAssoc($result_tec);
     <div id="titulo_rel"> <?php echo __('Tickets', 'dashboard') .'  '. __('by Requester', 'dashboard') ?>  </div>
 	    <div id="datas-tec" class="col-md-12 fluid" >
 	    <form id="form1" name="form1" class="form_rel" method="post" action="rel_usuario.php?con=1">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
 		    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef">
 		    <tr>
 				<td style="width: 310px;">
