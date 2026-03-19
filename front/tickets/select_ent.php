@@ -5,6 +5,10 @@ global $DB, $CFG_GLPI;
 
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 ?>
 
 <html> 
@@ -118,6 +122,7 @@ $selected = "0";
 			<div id="titulo_graf"> <?php echo __('Tickets', 'dashboard') .'  '. __('by Entity', 'dashboard') ?> </div>	
 				<div id="datas-cham" class="col-md-12 fluid" >	
 				<form id="form1" name="form1" class="form_rel" method="post" action="select_ent.php?sel=1">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
 					<table border="0" cellspacing="0" cellpadding="1" bgcolor="#efefef" width="300px">
 						<tr>
 							<td>

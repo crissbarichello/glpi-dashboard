@@ -9,6 +9,10 @@ global $DB;
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 if(!empty($_POST['submit']))
 {
     $data_ini =  $_POST['date1'];
@@ -121,6 +125,7 @@ else {
 
     <div id="datas-tec3" class="span12 fluid" >
     <form id="form1" name="form1" class="form_rel" method="post" action="./rel_tarefa_cham_group.php?con=1" style="margin-left: 37%;">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
 	    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef">
 		    <tr>
 					<td style="width: 310px;">

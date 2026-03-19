@@ -8,6 +8,10 @@ global $DB;
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 # entity in index
 $sql_e = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'entity' AND users_id = ".$_SESSION['glpiID']."";
 $result_e = $DB->query($sql_e);
@@ -679,6 +683,7 @@ $tec = $DB->fetchAssoc($result_tec);
 
     <div id="datas-tec" class="col-md-12 row-fluid" >
     <form id="form1" name="form1" class="form_rel" method="post" action="template.php?con=1">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
 	    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef">
 	    <tr>
 			<td style="width: 310px;">

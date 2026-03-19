@@ -8,6 +8,10 @@ global $DB;
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 if(!empty($_POST['submit']))
 {	
 	$data_ini =  $_POST['date1'];	
@@ -133,7 +137,8 @@ function dropdown( $name, array $options, $selected=null )
 
 	<div id="titulo_rel"> <?php echo __('Tickets', 'dashboard') ?> </div>	
 		<div id="datas-tec3" class="col-md-12 fluid" > 
-		<form id="form1" name="form1" class="form_rel" method="post" action="rel_tickets.php?con=1" style="margin-left: 15%;"> 
+		<form id="form1" name="form1" class="form_rel" method="post" action="rel_tickets.php?con=1" style="margin-left: 15%;">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?> 
 		<table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" class="tab_tickets" width="550">
 		<tr>			
 			<td style="margin-top:2px; width:110px;"><?php echo __('Period'); ?>: </td>	

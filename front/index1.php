@@ -17,7 +17,13 @@ $sel_ent = $DB->result($result_e,0,'value');
 if($sel_ent == '') { 	
 	//if($sel_ent == '') { 	
    //$sel_ent1 = explode(",",$sel_ent);
-	$entities = $_SESSION['glpiactiveentities'];
+	$entities = $_SESSION['glpiactiveentities'] ?? [];
+	if (!is_array($entities)) {
+		$entities = [];
+	}
+	if (count($entities) === 0) {
+		$entities = [0];
+	}
 	$sel_ent = implode(",",$entities);		
 	$query = "SELECT name FROM glpi_entities WHERE id IN (".$sel_ent.")";
 	$result = $DB->query($query);
@@ -133,12 +139,23 @@ else {
 	$up_option = $DB->result($result_up,0,'value');	
 	              
 	if($up_option == 1) {  
-	
-		$ver = explode(" ",implode(" ",plugin_version_dashboard())); 																																																			
-		$urlv = "http://a.fsdn.com/con/app/proj/glpidashboard/screenshots/".$ver[1].".png";
-		$headers = get_headers($urlv, 1);										
 		
-		if($headers[0] != '') {
+		$version = '';
+		if (function_exists('plugin_version_dashboard')) {
+			$plugin_info = plugin_version_dashboard();
+			$version = $plugin_info['version'] ?? '';
+		}
+		if ($version === '' && defined('PLUGIN_DASHBOARD_VERSION')) {
+			$version = PLUGIN_DASHBOARD_VERSION;
+		}
+		$urlv = "http://a.fsdn.com/con/app/proj/glpidashboard/screenshots/".$version.".png";
+		$context = stream_context_create([
+			'http' => ['timeout' => 2],
+			'https' => ['timeout' => 2]
+		]);
+		$headers = @get_headers($urlv, 1, $context);										
+		
+		if(is_array($headers) && isset($headers[0]) && $headers[0] != '') {
 			//if ($headers[0] == 'HTTP/1.1 200 OK') { }
 			if ($headers[0] == 'HTTP/1.0 404 Not Found') {
 				$newversion = "<a href='https://forge.glpi-project.org/projects/dashboard/files' target='_blank' style='margin-right: 12px; color:#fff;' class='blink_me'><i class='fa fa-refresh'></i><span>&nbsp;&nbsp;".  __('New version','dashboard'). " ". __( 'avaliable','dashboard'). " </span></a>";		

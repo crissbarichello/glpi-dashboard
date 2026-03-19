@@ -61,9 +61,11 @@ class PluginDashboardConfig extends CommonDBTM {
          return false;
       }           
       
+      $entity_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
       //get entity coordinates
-      if(isset($_GET['id'])) {
-	      $query_coo = "SELECT * FROM glpi_plugin_dashboard_map WHERE entities_id = ".$_GET['id'];
+      if (isset($_GET['id'])) {
+	      $query_coo = "SELECT * FROM glpi_plugin_dashboard_map WHERE entities_id = ".$entity_id;
 	      $result_coo = $DB->query($query_coo) or die ("erro");
 			$ent_info = $DB->fetchAssoc($result_coo);
 			
@@ -77,8 +79,10 @@ class PluginDashboardConfig extends CommonDBTM {
 
       $canedit = Session::haveRight(Config::$rightname, UPDATE);
       if ($canedit) {         
-         echo "<form name='form' action='../plugins/dashboard/front/map/insert_coord.php' method='post'>";
+         echo "<form name='form' action='../plugins/dashboard/front/map/insert_coord.php' method='post'>
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>";
       }
+      echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
       echo Html::hidden('config_context', ['value' => 'dashboard']);
       echo Html::hidden('config_class', ['value' => __CLASS__]);            
 
@@ -102,7 +106,7 @@ class PluginDashboardConfig extends CommonDBTM {
 		
       echo "<tr class='tab_bg_2'><td>&nbsp;</td></tr>";      
 
-      echo "<td><input type='hidden' id='id' name='id' value=".$_GET['id']."></td>";           
+      echo "<td><input type='hidden' id='id' name='id' value=".$entity_id."></td>";           
 		
 		if ($canedit) {
          echo "<tr class='tab_bg_2'>";

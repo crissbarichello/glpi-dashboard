@@ -6,6 +6,10 @@ include (GLPI_ROOT . "/inc/config.php");
 
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 ?>        
 
 <html> 
@@ -120,7 +124,8 @@ function reload() {
 						}																														 
 		                               
  		 
- 		echo '<form id="form2" name="form2" class="form1" method="post" action="config.php?conf=1">';  
+	 		echo '<form id="form2" name="form2" class="form1" method="post" action="config.php?conf=1">';  
+			echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
  						
 		echo "<table border='0' style='width: 410px; margin-left: auto; margin-right: auto; margin-bottom: 10px; margin-top:20px;'>
 				<tr>
@@ -206,10 +211,11 @@ function reload() {
  		echo '<div id="datas-tecx" class="col-md-12 row-fluid" > 
 
  				<form id="form1" name="form1" class="form1" method="post" action="config.php?conf=1">';   						
+		echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
 		echo "<table border='0' style='width: 420px; margin-left: auto; margin-right: auto; margin-bottom: 20px; margin-top:20px;'>
 				<tr>
 					<td>-- ".__('Period in index page','dashboard').":&nbsp; 
-						<select id='num' name='num' style='width: 130px;' onChange='this.form.submit()'>
+							<select id='num' name='num' style='width: 130px;' onChange='this.form.submit()'>
 							<option value=''>".__('Select','dashboard')."</option>
 							<option value='0'>".__('All')."</option>
 							<option value='1'>".__('Current year','dashboard')."</option>";

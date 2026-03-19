@@ -1,40 +1,50 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../inc/config.php");
 
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
-$ent_id =	$_POST["id"];
-
-if(isset($_POST["lng"]) && isset($_POST["lat"])) {
-
-	$lng = 	$_POST["lng"]; 
-	$lat =	$_POST["lat"];
-		
-	$query = "SELECT name FROM glpi_entities WHERE id = ".$ent_id;
-	$result = $DB->query($query) or die ("error insert");
-	
-	$location = $DB->result($result,0,'name');
-	
-	$insert = "
-		INSERT INTO glpi_plugin_dashboard_map (entities_id, location, lat, lng) 
-		VALUES ('$ent_id', '$location', '$lat', '$lng') 
-		ON DUPLICATE KEY UPDATE lat='$lat', lng='$lng'";			 
-	
-	$DB->query($insert) or die ("error inserting coordinates");
-	
-	echo "<meta HTTP-EQUIV='refresh' CONTENT='0;URL=".$CFG_GLPI['root_doc']."/front/entity.form.php?id=".$ent_id."'>";
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    Html::redirect($CFG_GLPI['root_doc'] . '/front/entity.php');
 }
 
-if($_POST["lng"] == "" && $_POST["lat"] == "") {
-	
-	$query = "DELETE FROM glpi_plugin_dashboard_map WHERE entities_id = ".$_POST["id"];
-	$DB->query($query) or die ("error removing coordinates");
-	
-	echo "<meta HTTP-EQUIV='refresh' CONTENT='0;URL=".$CFG_GLPI['root_doc']."/front/entity.form.php?id=".$ent_id."'>";	
-}			
+if (method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 
-?>
+$ent_id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+$lng = isset($_POST['lng']) ? trim((string)$_POST['lng']) : '';
+$lat = isset($_POST['lat']) ? trim((string)$_POST['lat']) : '';
+
+if ($ent_id <= 0) {
+    Html::redirect($CFG_GLPI['root_doc'] . '/front/entity.php');
+}
+
+if ($lng !== '' && $lat !== '') {
+    $lng_value = (float)$lng;
+    $lat_value = (float)$lat;
+
+    $query = "SELECT name FROM glpi_entities WHERE id = ".$ent_id;
+    $result = $DB->query($query);
+    if ($result !== false) {
+        $location = $DB->result($result, 0, 'name');
+        $location = $DB->escape($location);
+
+        $insert = "
+            INSERT INTO glpi_plugin_dashboard_map (entities_id, location, lat, lng)
+            VALUES ($ent_id, '$location', $lat_value, $lng_value)
+            ON DUPLICATE KEY UPDATE lat=$lat_value, lng=$lng_value";
+        $DB->query($insert);
+    }
+
+    Html::redirect($CFG_GLPI['root_doc']."/front/entity.form.php?id=".$ent_id);
+}
+
+if ($lng === '' && $lat === '') {
+    $query = "DELETE FROM glpi_plugin_dashboard_map WHERE entities_id = ".$ent_id;
+    $DB->query($query);
+}
+
+Html::redirect($CFG_GLPI['root_doc']."/front/entity.form.php?id=".$ent_id);
 

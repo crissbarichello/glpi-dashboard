@@ -1,50 +1,79 @@
 <?php
 
+/**
+ * Dashboard plugin for GLPI.
+ */
+define('PLUGIN_DASHBOARD_VERSION', '1.0.4-dev');
+define('PLUGIN_DASHBOARD_MIN_GLPI_VERSION', '10.0.0');
+define('PLUGIN_DASHBOARD_MAX_GLPI_VERSION', '11.0.0');
 
-function plugin_init_dashboard() {
+/**
+ * Init hooks of the plugin.
+ */
+function plugin_init_dashboard(): void
+{
+    global $PLUGIN_HOOKS;
 
-   global $PLUGIN_HOOKS, $LANG ;
-	
-	$PLUGIN_HOOKS['csrf_compliant']['dashboard'] = true;
-	
-   Plugin::registerClass('PluginDashboardConfig', [
-      'addtabon' => ['Entity']
-   ]);  
-          
-    $PLUGIN_HOOKS["menu_toadd"]['dashboard'] = array('plugins'  => 'PluginDashboardConfig');
+    $PLUGIN_HOOKS['csrf_compliant']['dashboard'] = true;
+
+    Plugin::registerClass('PluginDashboardConfig', [
+        'addtabon' => ['Entity']
+    ]);
+
+    $PLUGIN_HOOKS['menu_toadd']['dashboard'] = ['plugins' => 'PluginDashboardConfig'];
     $PLUGIN_HOOKS['config_page']['dashboard'] = 'front/index.php';
-                
 }
 
-
-function plugin_version_dashboard(){
-	global $DB, $LANG;
-
-	return array('name'			=> __('Dashboard','dashboard'),
-					'version' 			=> '1.0.3',
-					'author'			   => '<a href="https://plugins.glpi-project.org/#/plugin/dashboard"> Stevenes Donato </b> </a>',
-					'license'		 	=> 'GPLv2+',
-					'homepage'			=> 'https://plugins.glpi-project.org/#/plugin/dashboard',
-					'minGlpiVersion'	=> '9.4'
-					);
+/**
+ * Get plugin metadata.
+ *
+ * @return array<string, mixed>
+ */
+function plugin_version_dashboard(): array
+{
+    return [
+        'name'         => __('Dashboard', 'dashboard'),
+        'version'      => PLUGIN_DASHBOARD_VERSION,
+        'author'       => '<a href="https://plugins.glpi-project.org/#/plugin/dashboard">Stevenes Donato</a>',
+        'license'      => 'GPLv2+',
+        'homepage'     => 'https://plugins.glpi-project.org/#/plugin/dashboard',
+        'requirements' => [
+            'glpi' => [
+                'min' => PLUGIN_DASHBOARD_MIN_GLPI_VERSION,
+                'max' => PLUGIN_DASHBOARD_MAX_GLPI_VERSION,
+            ],
+        ],
+    ];
 }
 
+/**
+ * Check pre-requisites before install.
+ */
+function plugin_dashboard_check_prerequisites(): bool
+{
+    if (
+        version_compare(GLPI_VERSION, PLUGIN_DASHBOARD_MIN_GLPI_VERSION, '>=')
+        && version_compare(GLPI_VERSION, PLUGIN_DASHBOARD_MAX_GLPI_VERSION, '<')
+    ) {
+        return true;
+    }
 
-function plugin_dashboard_check_prerequisites(){
-     if (GLPI_VERSION >= 9.4){
-         return true;
-     } else {
-         echo "GLPI version NOT compatible. Requires GLPI >= 9.4";
-     }
+    echo sprintf(
+        'Dashboard plugin is not compatible with GLPI %s. Supported range: >= %s and < %s.',
+        GLPI_VERSION,
+        PLUGIN_DASHBOARD_MIN_GLPI_VERSION,
+        PLUGIN_DASHBOARD_MAX_GLPI_VERSION
+    );
+    return false;
 }
 
-
-function plugin_dashboard_check_config($verbose=false){
-	if ($verbose) {
-		echo 'Installed / not configured';
-	}
-	return true;
+/**
+ * Check configuration process.
+ */
+function plugin_dashboard_check_config(bool $verbose = false): bool
+{
+    if ($verbose) {
+        echo 'Installed / not configured';
+    }
+    return true;
 }
-
-
-?>

@@ -2,9 +2,35 @@
 
 define('GLPI_ROOT', '../../../..');
 include (GLPI_ROOT . "/inc/includes.php");
-include (GLPI_ROOT . "/inc/config.php");
 
 global $DB;  
+Session::checkLoginUser();
+Session::checkRight("profile", READ);
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_GET['con'])
+    && (int)$_GET['con'] === 1
+) {
+    if (method_exists('Session', 'checkCSRF')) {
+        Session::checkCSRF();
+    }
+
+    $key = isset($_POST['key']) ? trim((string)$_POST['key']) : '';
+    if ($key !== '') {
+        $key = $DB->escape($key);
+        $insert = "
+            INSERT INTO glpi_plugin_dashboard_config (name, value, users_id)
+            VALUES ('map_key', '$key', 'xxx')
+            ON DUPLICATE KEY UPDATE value='$key'";
+        $DB->query($insert);
+    } else {
+        $query = "DELETE FROM glpi_plugin_dashboard_config WHERE name = 'map_key'";
+        $DB->query($query);
+    }
+
+    Html::redirect('map_key.php');
+}
 
 //check if exists google maps api key
 $query_key = "SELECT * FROM glpi_plugin_dashboard_config WHERE name = 'map_key'"; 
@@ -59,6 +85,8 @@ $api_key = $DB->result($res_key,0,'value');
 			2 - <?php echo __('Paste your key bellow and save','dashboard'); ?> <br>
 		</div>
 		<form id="form_key" name="form_key" action="map_key.php?con=1" method="post" class="col-md-8 col-sm-8">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
+			<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
 			<br>
 			<input type="text" class="form-control" value="<?php echo $api_key; ?>" id="key" name="key" placeholder="Google maps API key">
 			<br>
@@ -69,30 +97,7 @@ $api_key = $DB->result($res_key,0,'value');
 		<?php Html::closeForm(); ?> 								
 		
 		
-		<?php
-			
-			if(isset($_REQUEST['con']) && $_REQUEST['con'] == 1) {
-				if(isset($_POST['key']) && $_POST['key'] != '') {
-					
-					$key = $_POST['key'];
-					
-					$insert = "
-						INSERT INTO glpi_plugin_dashboard_config (name, value, users_id) 
-						VALUES ('map_key', '$key', 'xxx') 
-						ON DUPLICATE KEY UPDATE value='$key'";			 
-					
-					$DB->query($insert) or die ("error inserting API key");
-					
-					echo "<meta HTTP-EQUIV='refresh' CONTENT='0;URL=\"map_key.php\"'>";			
-				}	
-				
-				if(isset($_POST['key']) && $_POST['key'] == '') {
-					$query = "DELETE FROM glpi_plugin_dashboard_config WHERE name = 'map_key'";
-					$result = $DB->query($query);
-				}
-			}		
-		
-		?>
+		<?php ?>
 	 	
 	</div>
 	</div>

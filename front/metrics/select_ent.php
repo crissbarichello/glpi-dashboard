@@ -5,6 +5,10 @@ global $DB, $CFG_GLPI;
 
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 ?>
 
 <html> 
@@ -118,6 +122,7 @@ $selected = "0";
 			<div id="titulo_graf"> <?php echo __('Metrics', 'dashboard') .'  '. __('by Entity', 'dashboard') ?> </div>	
 				<div id="datas-cham" class="col-md-12 fluid" >	
 				<form id="form1" name="form1" class="form_rel" method="post" action="select_ent.php?sel=1">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
 					<table border="0" cellspacing="0" cellpadding="1" bgcolor="#efefef" width="300px">
 						<tr>
 							<td>
@@ -142,36 +147,33 @@ $selected = "0";
 	</script>
 	
 	<?php
-	if(isset($_REQUEST['sel'])){
-		$sel = $_REQUEST['sel'];
+if (isset($_GET['sel'])) {
+	$sel = (string)$_GET['sel'];
+} else {
+	$sel = '';
+}
+
+if($sel == "1") {
+
+	$id_ent = 0;
+	if (isset($_POST['sel_ent'])) {
+		$id_ent = (int)$_POST['sel_ent'];
+	} elseif (isset($_GET['ent'])) {
+		$id_ent = (int)$_GET['ent'];
 	}
-	else {$sel = '';}
-	
-	if($sel == "1") {
-	 
-	if(!isset($_POST["sel_ent"])) {
-		$id_ent = $_REQUEST["ent"];	
-	}
-	
-	else {
-		$id_ent = $_POST["sel_ent"];
-	}
-	
-	if($id_ent == " ") {
+
+	if ($id_ent <= 0) {
 		echo '<script language="javascript"> alert(" ' . __('Select a entity', 'dashboard') . ' "); </script>';
 		echo '<script language="javascript"> location.href="select_ent.php"; </script>';
-	}	
-	?>
-	
-	<script type="text/javascript" >
-		location.href="index.php?ent=<?php echo $id_ent; ?>";
-	</script>		
-	
-	</div>
+	} else {
+		Html::redirect("index.php?ent=".$id_ent);
+	}
+}
+?>
+
+</div>
 </div>
 </div>
 </body>
 </html>
-
-<?php } ?>
 

@@ -1,0 +1,12 @@
+{
+    "name": "glpi/dashboard",
+    "description": "Dashboard plugin for GLPI",
+    "type": "glpi-plugin",
+    "require": {
+        "php": ">=8.1"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

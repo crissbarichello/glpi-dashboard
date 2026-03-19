@@ -5,6 +5,10 @@ include ("../../../../inc/config.php");
 
 Session::checkLoginUser();
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 global $DB;
     switch (date("m")) {
 	    case "01": $mes = __('January','dashboard'); break;
@@ -183,7 +187,8 @@ $selected = 0;
 ?>
 
 <div id="datas-tec" class="fluid" >
-<form id="form1" name="form1" class="form1" method="post" action="?date1=<?php echo $data_ini ?>&date2=<?php echo $data_fin ?>&con=1">
+<form id="form1" name="form1" class="form1" method="post" action="?date1=<?php echo $data_ini ?>
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>&date2=<?php echo $data_fin ?>&con=1">
 
 	<table border="0" cellspacing="0" cellpadding="1" bgcolor="#efefef">
 		<tr>

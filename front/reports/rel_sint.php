@@ -8,6 +8,10 @@ global $DB;
 
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 ?>
 
 <html>
@@ -58,7 +62,8 @@ Session::checkRight("profile", READ);
 					
 					<div id="titulo"> <?php echo __('Summary Report','dashboard') .'  '. __('','dashboard') ?> </div>		
 						<div id="datas" class="col-md-12 fluid" style="margin-left:60px;"> 
-						<form id="form1" name="form1" class="form1" method="post" action="rel_sint.php?sel=1"> 
+						<form id="form1" name="form1" class="form1" method="post" action="rel_sint.php?sel=1">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?> 
 							<table border="0" cellspacing="0" cellpadding="2">
 								<tr>										
 										<?php

@@ -9,6 +9,10 @@ global $DB, $row_count, $type;
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
+    Session::checkCSRF();
+}
 if(!empty($_POST['submit']))
 {
 	$data_ini =  $_POST['date1'];
@@ -107,6 +111,7 @@ else {
 	<div id="titulo_rel"> <?php echo __('Assets') ?> </div>
 		<div id="datas-tec" class="col-md-12 fluid" >
 		<form id="form1" name="form1" class="form_rel" method="post" action="rel_assets.php?con=1" style="margin-left: 26%;">
+<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
 			<table border="0" cellspacing="0" cellpadding="10" bgcolor="#efefef" class="tab_tickets">
 			<tr>
 				<td style="margin-top:2px; width:100px;"><?php echo __('Period'); ?>: </td>
