@@ -7,7 +7,7 @@ Session::checkLoginUser();
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
-    Session::checkCSRF();
+    Session::checkCSRF($_POST);
 }
 global $DB;
     switch (date("m")) {

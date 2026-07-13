@@ -6,8 +6,13 @@ global $DB, $CFG_GLPI;
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
-    Session::checkCSRF();
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && method_exists('Session', 'checkCSRF')
+    && isset($_POST['sel'])
+    && (string)$_POST['sel'] === '1'
+) {
+    Session::checkCSRF($_POST);
 }
 ?>
 
@@ -78,13 +83,23 @@ $sel_ent = $DB->result($result_e,0,'value');
 
 if($sel_ent == '' || $sel_ent == -1) {
 	
-	$entities = $_SESSION['glpiactiveentities'];
+	$entities = $_SESSION['glpiactiveentities'] ?? array();
+	if (!is_array($entities) || empty($entities)) {
+		$entities = array(0);
+	}
 	//$entities = Profile_User::getUserEntitiesForRight($_SESSION['glpiID'],Ticket::$rightname,Ticket::READALL);
-	$ents = implode(",",$entities);
+	$entities = array_map('intval', $entities);
+	$entities = array_filter($entities, static function ($value) {
+		return $value >= 0;
+	});
+	$ents = implode(",", $entities);
 
 }
 else {
-	$ents = $sel_ent;
+	$ents = preg_replace('/[^0-9,]/', '', (string)$sel_ent);
+	if ($ents === '') {
+		$ents = '0';
+	}
 }
 
 $sql_ent = "
@@ -94,19 +109,16 @@ WHERE id IN (".$ents.")
 ORDER BY `cname` ASC ";
 
 $result_ent = $DB->query($sql_ent);
-$ent = $DB->fetchAssoc($result_ent);
-
-$res_ent = $DB->query($sql_ent);
 $arr_ent = array();
 $arr_ent[0] = "-- ". __('Select a entity', 'dashboard') . " --" ;
 
-$DB->dataSeek($result_ent, 0) ;
-
-while ($row_result = $DB->fetchAssoc($result_ent))		
-	{ 
-		$v_row_result = $row_result['id'];
-		$arr_ent[$v_row_result] = $row_result['cname'] ;			
-	} 
+if ($result_ent) {
+	$DB->dataSeek($result_ent, 0);
+	while ($row_result = $DB->fetchAssoc($result_ent)) {
+		$v_row_result = (int)$row_result['id'];
+		$arr_ent[$v_row_result] = $row_result['cname'];
+	}
+}
 	
 $name = 'sel_ent';
 $options = $arr_ent;
@@ -121,8 +133,9 @@ $selected = "0";
 		<a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
 			<div id="titulo_graf"> <?php echo __('Tickets', 'dashboard') .'  '. __('by Entity', 'dashboard') ?> </div>	
 				<div id="datas-cham" class="col-md-12 fluid" >	
-				<form id="form1" name="form1" class="form_rel" method="post" action="select_ent.php?sel=1">
+				<form id="form1" name="form1" class="form_rel" method="post" action="select_ent.php">
 <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
+<?php echo Html::hidden('sel', ['value' => '1']); ?>
 					<table border="0" cellspacing="0" cellpadding="1" bgcolor="#efefef" width="300px">
 						<tr>
 							<td>
@@ -147,30 +160,30 @@ $selected = "0";
 	</script>
 	
 	<?php
-	if(isset($_REQUEST['sel'])){
-		$sel = $_REQUEST['sel'];
+	if(isset($_POST['sel'])){
+		$sel = (string)$_POST['sel'];
+	}
+	elseif(isset($_GET['sel'])){
+		$sel = (string)$_GET['sel'];
 	}
 	else {$sel = '';}
 	
 	if($sel == "1") {
 	 
-	if(!isset($_POST["sel_ent"])) {
-		$id_ent = $_REQUEST["ent"];	
+	$id_ent = 0;
+	if (isset($_POST["sel_ent"])) {
+		$id_ent = (int)$_POST["sel_ent"];
+	} elseif (isset($_GET["ent"])) {
+		$id_ent = (int)$_GET["ent"];
 	}
 	
-	else {
-		$id_ent = $_POST["sel_ent"];
-	}
-	
-	if($id_ent == " ") {
+	if($id_ent <= 0) {
 		echo '<script language="javascript"> alert(" ' . __('Select a entity', 'dashboard') . ' "); </script>';
 		echo '<script language="javascript"> location.href="select_ent.php"; </script>';
-	}	
-	?>
-	
-	<script type="text/javascript" >
-		location.href="tickets_ent.php?ent=<?php echo $id_ent; ?>";
-	</script>		
+	} else {
+		Html::redirect("tickets_ent.php?ent=".$id_ent);
+	}
+	?>	
 	
 	</div>
 </div>

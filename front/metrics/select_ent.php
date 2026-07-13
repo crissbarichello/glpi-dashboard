@@ -7,7 +7,7 @@ Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
-    Session::checkCSRF();
+    Session::checkCSRF($_POST);
 }
 ?>
 
@@ -78,13 +78,23 @@ $sel_ent = $DB->result($result_e,0,'value');
 
 if($sel_ent == '' || $sel_ent == -1) {
 	
-	$entities = $_SESSION['glpiactiveentities'];
+	$entities = $_SESSION['glpiactiveentities'] ?? array();
+	if (!is_array($entities) || empty($entities)) {
+		$entities = array(0);
+	}
 	//$entities = Profile_User::getUserEntitiesForRight($_SESSION['glpiID'],Ticket::$rightname,Ticket::READALL);
-	$ents = implode(",",$entities);
+	$entities = array_map('intval', $entities);
+	$entities = array_filter($entities, static function ($value) {
+		return $value >= 0;
+	});
+	$ents = implode(",", $entities);
 
 }
 else {
-	$ents = $sel_ent;
+	$ents = preg_replace('/[^0-9,]/', '', (string)$sel_ent);
+	if ($ents === '') {
+		$ents = '0';
+	}
 }
 
 $sql_ent = "
@@ -94,19 +104,16 @@ WHERE id IN (".$ents.")
 ORDER BY `cname` ASC ";
 
 $result_ent = $DB->query($sql_ent);
-$ent = $DB->fetchAssoc($result_ent);
-
-$res_ent = $DB->query($sql_ent);
 $arr_ent = array();
 $arr_ent[0] = "-- ". __('Select a entity', 'dashboard') . " --" ;
 
-$DB->dataSeek($result_ent, 0) ;
-
-while ($row_result = $DB->fetchAssoc($result_ent))		
-	{ 
-		$v_row_result = $row_result['id'];
-		$arr_ent[$v_row_result] = $row_result['cname'] ;			
-	} 
+if ($result_ent) {
+	$DB->dataSeek($result_ent, 0);
+	while ($row_result = $DB->fetchAssoc($result_ent)) {
+		$v_row_result = (int)$row_result['id'];
+		$arr_ent[$v_row_result] = $row_result['cname'];
+	}
+}
 	
 $name = 'sel_ent';
 $options = $arr_ent;

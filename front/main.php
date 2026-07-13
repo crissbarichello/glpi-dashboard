@@ -27,13 +27,16 @@ else {
 	$ent_name = __('Tickets Statistics','dashboard')." :  ". $ent_name1 ;	
 }	
 
-if($sel_ent != '') {			
+if($sel_ent != '' && $sel_ent != -1) {			
 	$entidade = "AND glpi_tickets.entities_id IN (".$sel_ent.")";
 	$entidade_u = "AND glpi_profiles_users.entities_id IN (".$sel_ent.")";	
 }
 
 else {	
-	$entities = $_SESSION['glpiactiveentities'];
+	$entities = $_SESSION['glpiactiveentities'] ?? array();
+	if (!is_array($entities) || empty($entities)) {
+		$entities = array(0);
+	}
 	//$ent = $entities;	
 	//$entities = Profile_User::getUserEntitiesForRight($_SESSION['glpiID'],Ticket::$rightname,Ticket::READALL);	
 	$ent = implode(",",$entities);	
@@ -215,45 +218,23 @@ $ano = date("Y");
 $month = date("Y-m");
 $hoje = date("Y-m-d");
 
-//selecionar anos 
-if($num_years == -1) {
-	
-	$query_y = "SELECT DISTINCT DATE_FORMAT( date, '%Y' ) AS year
-	FROM glpi_tickets
-	WHERE glpi_tickets.is_deleted = '0'
-	AND date IS NOT NULL	
-	ORDER BY year ASC ";
-}
-else {
+//selecionar anos
+$num_years = (int)$num_years;
 
-	$query_y = "SELECT DISTINCT DATE_FORMAT( date, '%Y' ) AS year
-	FROM glpi_tickets
-	WHERE glpi_tickets.is_deleted = '0'
-	AND date IS NOT NULL
-	AND DATE_FORMAT( glpi_tickets.date, '%Y' ) IN (".$num_years.") 
-	ORDER BY year DESC";
-
-}	
-/*if($num_years == 1) {
-	
-	$query_y = "SELECT DISTINCT DATE_FORMAT( date, '%Y' ) AS year
+if ($num_years > 0) {
+	$query_y = "SELECT DISTINCT DATE_FORMAT(date, '%Y') AS year
 	FROM glpi_tickets
 	WHERE glpi_tickets.is_deleted = '0'
 	AND date IS NOT NULL
 	ORDER BY year DESC
-	LIMIT ".$num_years."";
-}
-
-if($num_years > 1) {
-	
-	$query_y = "SELECT DISTINCT DATE_FORMAT( date, '%Y' ) AS year
+	LIMIT " . $num_years;
+} else {
+	$query_y = "SELECT DISTINCT DATE_FORMAT(date, '%Y') AS year
 	FROM glpi_tickets
 	WHERE glpi_tickets.is_deleted = '0'
 	AND date IS NOT NULL
-	ORDER BY year DESC
-	LIMIT ".$num_years."";
-	
-}*/
+	ORDER BY year ASC";
+}
 
 $result_y = $DB->query($query_y);
 
@@ -261,19 +242,21 @@ $result_y = $DB->query($query_y);
 $conta_y = $DB->numrows($result_y);
 
 $arr_years = array();
+if ($result_y) {
+	while ($row_y = $DB->fetchAssoc($result_y)) {
+		$arr_years[] = (int)$row_y['year'];
+	}
+}
 
-while ($row_y = $DB->fetchAssoc($result_y))		
-{ 
-	$arr_years[] = $row_y['year'];			
-} 
+if (empty($arr_years)) {
+	$arr_years[] = (int)$ano;
+}
 
-if($num_years > 1) {
+if ($num_years > 1) {
 	$arr_years = array_reverse($arr_years);
-	$years = implode(",", $arr_years);
 }
-else {
-	$years = implode(",", $arr_years);
-}
+
+$years = implode(",", $arr_years);
 
 
 //chamados ano

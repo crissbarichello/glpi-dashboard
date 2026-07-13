@@ -12,7 +12,7 @@ Session::checkRight("profile", READ);
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
-    Session::checkCSRF();
+    Session::checkCSRF($_POST);
 }
 if(!empty($_POST['submit']))
 {
@@ -424,8 +424,7 @@ else {
 			else { $barra = 0;}
 
 			// nome da categoria
-			$sql_nm = "
-			SELECT id , completename AS name
+			$sql_nm = "SELECT id , completename AS name
 			FROM `glpi_itilcategories`
 			WHERE id = ".$id_cat." ";
 

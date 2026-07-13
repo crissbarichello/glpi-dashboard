@@ -10,7 +10,7 @@ Session::checkRight("profile", READ);
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
-    Session::checkCSRF();
+    Session::checkCSRF($_POST);
 }
 # entity in index
 $sql_e = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'entity' AND users_id = ".$_SESSION['glpiID']."";

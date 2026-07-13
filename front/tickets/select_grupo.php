@@ -7,7 +7,7 @@ Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
-    Session::checkCSRF();
+    Session::checkCSRF($_POST);
 }
 ?>
 

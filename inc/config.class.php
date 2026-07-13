@@ -69,8 +69,8 @@ class PluginDashboardConfig extends CommonDBTM {
 	      $result_coo = $DB->query($query_coo) or die ("erro");
 			$ent_info = $DB->fetchAssoc($result_coo);
 			
-			$LNG = $ent_info['lng'];
-			$LAT = $ent_info['lat'];
+			$LNG = $ent_info['lng'] ?? '';
+			$LAT = $ent_info['lat'] ?? '';
 		}
 		else {
 			$LNG = '';
@@ -79,10 +79,11 @@ class PluginDashboardConfig extends CommonDBTM {
 
       $canedit = Session::haveRight(Config::$rightname, UPDATE);
       if ($canedit) {         
-         echo "<form name='form' action='../plugins/dashboard/front/map/insert_coord.php' method='post'>
-<?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>";
+         echo "<form name='form' action='../plugins/dashboard/front/map/insert_coord.php' method='post'>";
       }
-      echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
+      if ($canedit) {
+         echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
+      }
       echo Html::hidden('config_context', ['value' => 'dashboard']);
       echo Html::hidden('config_class', ['value' => __CLASS__]);            
 
@@ -96,17 +97,17 @@ class PluginDashboardConfig extends CommonDBTM {
 
       echo "<tr class='tab_bg_2'>";      
       echo "<td>". __('Latitude') ."</td>";      
-      echo "<td><input type='text' class='form-control' id='lat' name='lat' value=".$LAT."></td>";           
+      echo "<td><input type='text' class='form-control' id='lat' name='lat' value='".Html::cleanInputText($LAT)."'></td>";           
 		echo "</tr>";		
 
       echo "<tr class='tab_bg_2'>";      
       echo "<td width='110px'>". __('Longitude') ."</td>";
-      echo "<td><input type='text' class='form-control' id='lng' name='lng' value=".$LNG."></td>";
+      echo "<td><input type='text' class='form-control' id='lng' name='lng' value='".Html::cleanInputText($LNG)."'></td>";
 		echo "</tr>";
 		
       echo "<tr class='tab_bg_2'><td>&nbsp;</td></tr>";      
 
-      echo "<td><input type='hidden' id='id' name='id' value=".$entity_id."></td>";           
+      echo "<td><input type='hidden' id='id' name='id' value='".$entity_id."'></td>";           
 		
 		if ($canedit) {
          echo "<tr class='tab_bg_2'>";
@@ -116,7 +117,9 @@ class PluginDashboardConfig extends CommonDBTM {
       }
 		
       echo "</table></div>";
-      Html::closeForm();
+      if ($canedit) {
+         Html::closeForm();
+      }
    }
 
 

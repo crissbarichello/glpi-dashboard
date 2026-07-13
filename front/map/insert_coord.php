@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 if (method_exists('Session', 'checkCSRF')) {
-    Session::checkCSRF();
+    Session::checkCSRF($_POST);
 }
 
 $ent_id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
@@ -31,11 +31,20 @@ if ($lng !== '' && $lat !== '') {
         $location = $DB->result($result, 0, 'name');
         $location = $DB->escape($location);
 
-        $insert = "
-            INSERT INTO glpi_plugin_dashboard_map (entities_id, location, lat, lng)
-            VALUES ($ent_id, '$location', $lat_value, $lng_value)
-            ON DUPLICATE KEY UPDATE lat=$lat_value, lng=$lng_value";
-        $DB->query($insert);
+        $exists = $DB->query("SELECT id FROM glpi_plugin_dashboard_map WHERE entities_id = ".$ent_id." LIMIT 1");
+        if ($exists !== false && $DB->numrows($exists) > 0) {
+            $map_id = (int)$DB->result($exists, 0, 'id');
+            $DB->query("
+                UPDATE glpi_plugin_dashboard_map
+                SET location = '$location', lat = $lat_value, lng = $lng_value
+                WHERE id = $map_id
+            ");
+        } else {
+            $DB->query("
+                INSERT INTO glpi_plugin_dashboard_map (entities_id, location, lat, lng)
+                VALUES ($ent_id, '$location', $lat_value, $lng_value)
+            ");
+        }
     }
 
     Html::redirect($CFG_GLPI['root_doc']."/front/entity.form.php?id=".$ent_id);

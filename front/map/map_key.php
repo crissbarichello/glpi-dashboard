@@ -13,7 +13,7 @@ if (
     && (int)$_GET['con'] === 1
 ) {
     if (method_exists('Session', 'checkCSRF')) {
-        Session::checkCSRF();
+        Session::checkCSRF($_POST);
     }
 
     $key = isset($_POST['key']) ? trim((string)$_POST['key']) : '';

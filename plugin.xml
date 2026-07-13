@@ -1,7 +1,7 @@
 <root>
    <name>Dashboard</name>
    <key>dashboard</key>
-   <state>development</state>
+   <state>stable</state>
    <description>
       <short>
          <en>Dashboard plugin for GLPI</en>
@@ -18,8 +18,8 @@
    </authors>
    <versions>
       <version>
-         <num>1.0.4-dev</num>
-         <compatibility>~10.0.0</compatibility>
+         <num>1.0.5</num>
+         <compatibility>&gt;=10.0.0 &lt;12.0.0</compatibility>
       </version>
    </versions>
    <langs>

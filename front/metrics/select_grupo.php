@@ -8,7 +8,7 @@ Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
-    Session::checkCSRF();
+    Session::checkCSRF($_POST);
 }
 ?>
 
@@ -83,12 +83,23 @@ if($sel_ent == '' || $sel_ent == -1) {
 	
 	//$entities = $_SESSION['glpiactiveentities'];
 	$entities = Profile_User::getUserEntitiesForRight($_SESSION['glpiID'],Ticket::$rightname,Ticket::READALL);								
+	if (!is_array($entities) || empty($entities)) {
+		$entities = array(0);
+	}
+	$entities = array_map('intval', $entities);
+	$entities = array_filter($entities, static function ($value) {
+		return $value >= 0;
+	});
 	$ent = implode(",",$entities);
 	
 	$entidade = "WHERE entities_id IN (".$ent.") OR is_recursive = 1 ";
 
 }
 else {
+	$sel_ent = preg_replace('/[^0-9,]/', '', (string)$sel_ent);
+	if ($sel_ent === '') {
+		$sel_ent = '0';
+	}
 	$entidade = "WHERE entities_id IN (".$sel_ent.") OR is_recursive = 1 ";
 }
 
@@ -100,19 +111,16 @@ FROM `glpi_groups`
 ORDER BY `name` ASC";
 
 $result_grp = $DB->query($sql_grp);
-$ent = $DB->fetchAssoc($result_grp);
-
-$res_grp = $DB->query($sql_grp);
 $arr_grp = array();
 $arr_grp[0] = "-- ". __('Select a group', 'dashboard') . " --" ;
 
-$DB->dataSeek($result_grp, 0) ;
-
-while ($row_result = $DB->fetchAssoc($result_grp))		
-	{ 
-	$v_row_result = $row_result['id'];
-	$arr_grp[$v_row_result] = $row_result['name'] ;			
-	} 
+if ($result_grp) {
+	$DB->dataSeek($result_grp, 0);
+	while ($row_result = $DB->fetchAssoc($result_grp)) {
+		$v_row_result = (int)$row_result['id'];
+		$arr_grp[$v_row_result] = $row_result['name'];
+	}
+}
 	
 $name = 'sel_grp';
 $options = $arr_grp;
@@ -155,29 +163,27 @@ $selected = "0";
 	
 	<?php
 	
-	if(isset($_REQUEST['sel'])){
-		$sel = $_REQUEST['sel'];
+	if(isset($_GET['sel'])){
+		$sel = (string)$_GET['sel'];
 	}
 	else {$sel = '';}
 	
 	if($sel == "1") {
 	 
-	if(!isset($_POST["sel_grp"])) {
-	$id_grp = $_REQUEST["ent"];	
+	$id_grp = 0;
+	if(isset($_POST["sel_grp"])) {
+		$id_grp = (int)$_POST["sel_grp"];
+	} elseif (isset($_GET["grp"])) {
+		$id_grp = (int)$_GET["grp"];
 	}
 	
-	else {
-	$id_grp = $_POST["sel_grp"];
-	}
-	
-	if($id_grp == " " || $id_grp == 0) {
+	if($id_grp <= 0) {
 	echo '<script language="javascript"> alert(" ' . __('Select a group', 'dashboard') . ' "); </script>';
 	echo '<script language="javascript"> location.href="select_grupo.php"; </script>';
-	}	
+	} else {
+		Html::redirect("index.php?grp=".$id_grp);
+	}
 	?>	
-	<script type="text/javascript" >
-	location.href="index.php?grp=<?php echo $id_grp; ?>";
-	</script>		
 	
 	</div>
 </div>

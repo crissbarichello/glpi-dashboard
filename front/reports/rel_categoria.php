@@ -11,12 +11,12 @@ Session::checkRight("profile", READ);
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && method_exists('Session', 'checkCSRF')) {
-    Session::checkCSRF();
+    Session::checkCSRF($_POST);
 }
 if(!empty($_POST['submit']))
 {
-    $data_ini = $_REQUEST['date1'];
-    $data_fin = $_REQUEST['date2'];
+    $data_ini = isset($_REQUEST['date1']) ? (string)$_REQUEST['date1'] : date("Y-m-01");
+    $data_fin = isset($_REQUEST['date2']) ? (string)$_REQUEST['date2'] : date("Y-m-d");
 }
 
 else {
@@ -25,12 +25,13 @@ else {
 }
 
 # categories
+$id_cat = 0;
 if(!isset($_POST["sel_cat"])) {
-	$id_cat = $_GET["sel_cat"];
+	$id_cat = isset($_GET["sel_cat"]) ? (int)$_GET["sel_cat"] : 0;
 }
 
 else {
-	$id_cat = $_POST["sel_cat"];
+	$id_cat = (int)$_POST["sel_cat"];
 }
 
 # sons categories
@@ -39,10 +40,12 @@ if(!isset($_POST["sons"])) {
 }
 
 else {
-	$sons_cat = $_POST["sons"];
+	$sons_cat = (int)$_POST["sons"];
 }
 
 # entity
+// Normaliza a lista de entidades para evitar SQL inválido em IN ().
+$entity_ids = array();
 if(!isset($_REQUEST['sel_ent']) || $_REQUEST['sel_ent'] == 0) {
 	
 $sql_e = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'entity' AND users_id = ".$_SESSION['glpiID']."";
@@ -53,22 +56,40 @@ $sel_ent = $DB->result($result_e,0,'value');
 if($sel_ent == '' || $sel_ent == -1) {
 
 	//get all user entities
-	$entities = $_SESSION['glpiactiveentities'];										
-	$ent = implode(",",$entities);
-
-	$entidade = "AND glpi_tickets.entities_id IN (".$ent.") ";
-	$entidade_c = "AND entities_id IN (".$ent.") ";
-	$entidade_cw = "WHERE (entities_id IN (".$ent.") OR is_recursive = 1)";	
+	$entities = $_SESSION['glpiactiveentities'] ?? array();
+	if (!is_array($entities) || empty($entities)) {
+		$entities = array(0);
+	}
+	foreach ($entities as $entity_id) {
+		$entity_ids[] = (int)$entity_id;
+	}
+} else {
+	$parts = explode(',', (string)$sel_ent);
+	foreach ($parts as $part) {
+		$entity_ids[] = (int)$part;
+	}
 }
 }
 
 else {
-	$sel_ent = $_REQUEST['sel_ent'];
-	$id_ent = $_REQUEST['sel_ent'];
-	$entidade = "AND glpi_tickets.entities_id IN (".$sel_ent.") ";
-	$entidade_c = "AND entities_id IN (".$sel_ent.") ";
-	$entidade_cw = "WHERE (entities_id IN (".$sel_ent.") OR is_recursive = 1)";
+	$sel_ent = (string)$_REQUEST['sel_ent'];
+	$id_ent = $sel_ent;
+	$parts = explode(',', $sel_ent);
+	foreach ($parts as $part) {
+		$entity_ids[] = (int)$part;
+	}
 }
+
+$entity_ids = array_filter(array_map('intval', $entity_ids), static function ($value) {
+	return $value >= 0;
+});
+if (empty($entity_ids)) {
+	$entity_ids = array(0);
+}
+$ent = implode(",", $entity_ids);
+$entidade = "AND glpi_tickets.entities_id IN (".$ent.") ";
+$entidade_c = "AND entities_id IN (".$ent.") ";
+$entidade_cw = "WHERE (entities_id IN (".$ent.") OR is_recursive = 1)";
 
 ?>
 
@@ -171,8 +192,7 @@ else {
 										<?php
 					
 										// lista de categorias
-										$sql_cat = "
-										SELECT id, completename AS name
+										$sql_cat = "SELECT id, completename AS name
 										FROM `glpi_itilcategories`
 										". $entidade_cw ."								
 										ORDER BY `name` ASC ";
@@ -182,9 +202,11 @@ else {
 										$arr_cat = array();
 										$arr_cat[0] = "-- ". __('Select a category', 'dashboard') . " --" ;
 					
-										while ($row_result = $DB->fetchAssoc($result_cat)) {
-											$v_row_result = $row_result['id'];
-											$arr_cat[$v_row_result] = $row_result['name'] ;
+										if ($result_cat) {
+											while ($row_result = $DB->fetchAssoc($result_cat)) {
+												$v_row_result = (int)$row_result['id'];
+												$arr_cat[$v_row_result] = $row_result['name'];
+											}
 										}
 					
 										$name = 'sel_cat';
@@ -221,34 +243,39 @@ else {
 
 			if($con == "1") {
 
-			if(!isset($_POST['date1']))
-			{
-				$data_ini2 = $_REQUEST['date1'];
-				$data_fin2 = $_REQUEST['date2'];
-			}
+				if(!isset($_POST['date1']))
+				{
+					$data_ini2 = isset($_REQUEST['date1']) ? (string)$_REQUEST['date1'] : $data_ini;
+					$data_fin2 = isset($_REQUEST['date2']) ? (string)$_REQUEST['date2'] : $data_fin;
+				}
 
-			else {
-				$data_ini2 = $_POST['date1'];
-				$data_fin2 = $_POST['date2'];
-			}
+				else {
+					$data_ini2 = (string)$_POST['date1'];
+					$data_fin2 = (string)$_POST['date2'];
+				}
 
-			# categories
-			if(!isset($_POST["sel_cat"])) {
-				$id_cat = $_REQUEST["cat"];
-			}
+				# categories
+				if(!isset($_POST["sel_cat"])) {
+					$id_cat = isset($_REQUEST["cat"]) ? (int)$_REQUEST["cat"] : 0;
+				}
 
-			else {
-				$id_cat = $_POST["sel_cat"];
-			}
+				else {
+					$id_cat = (int)$_POST["sel_cat"];
+				}
 			
-			# sons categories
-			if(!isset($_POST["sons"])) {
-				$sons_cat = $_REQUEST["sons"];
-			}
+				# sons categories
+				if(!isset($_POST["sons"])) {
+					$sons_cat = isset($_REQUEST["sons"]) ? (int)$_REQUEST["sons"] : 0;
+				}
 
-			else {
-				$sons_cat = $_POST["sons"];
-			}
+				else {
+					$sons_cat = (int)$_POST["sons"];
+				}
+
+				if ($id_cat <= 0) {
+					echo '<script language="javascript"> alert(" ' . __('Select a category', 'dashboard') . ' "); </script>';
+					Html::redirect("rel_categoria.php");
+				}
 						
 			#dates
 			if($data_ini2 == $data_fin2) {
@@ -284,10 +311,17 @@ else {
 
 			if($sons_cat == 1) {
  
- 				//$get_sons = getSonsAndAncestorsOf('glpi_itilcategories',$id_cat);
-				$get_sons = getSonsOf('glpi_itilcategories',$id_cat);
-				$id_cat_name = $id_cat;
-				$id_cat = implode(',',$get_sons);
+	 				//$get_sons = getSonsAndAncestorsOf('glpi_itilcategories',$id_cat);
+					$get_sons = getSonsOf('glpi_itilcategories',$id_cat);
+					$get_sons = array_map('intval', (array)$get_sons);
+					$get_sons = array_filter($get_sons, static function ($value) {
+						return $value > 0;
+					});
+					if (empty($get_sons)) {
+						$get_sons = array($id_cat);
+					}
+					$id_cat_name = $id_cat;
+					$id_cat = implode(',',$get_sons);
 				$and_sons = " (+ ".__('Sons','dashboard').")";				
 			}		
 			else {
@@ -371,10 +405,7 @@ else {
 			else { $barra = 0;}
 
 			// nome da categoria
-			$sql_nm = "
-			SELECT id , completename AS name
-			FROM `glpi_itilcategories`
-			WHERE id = ".$id_cat_name." ";
+			$sql_nm = "SELECT id , completename AS name FROM `glpi_itilcategories` WHERE id = ".$id_cat_name." ";
 
 			$result_nm = $DB->query($sql_nm);
 			$cat_name = $DB->fetchAssoc($result_nm);

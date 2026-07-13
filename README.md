@@ -1,17 +1,17 @@
 # Dashboard Plugin (GLPI)
 
-Plugin de dashboard para GLPI, atualmente em processo de migração para padrões modernos (GLPI 10 + PHP 8).
+Plugin de dashboard para GLPI, atualmente em processo de migração para padrões modernos (GLPI 10/11 + PHP 8).
 
 ## Status do Projeto
 
-- Estado: `development`
-- Versão atual: `1.0.5-dev`
+- Estado: `stable`
+- Versão atual: `1.0.5`
 - Chave do plugin: `dashboard`
 - Pasta obrigatória do plugin: `plugins/dashboard`
 
 ## Compatibilidade
 
-- GLPI: `>= 10.0.0` e `< 11.0.0`
+- GLPI: `>= 10.0.0` e `< 12.0.0`
 - PHP: `>= 8.1` (recomendado 8.2+)
 
 Referências no projeto:
